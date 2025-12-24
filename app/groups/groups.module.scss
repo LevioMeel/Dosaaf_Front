@@ -1,0 +1,29 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.thStyle {
+  border: 1px solid #333;
+  padding: 8px;
+  text-align: left;
+  background: #f0f0f0;
+}
+
+.tdStyle {
+  border: 1px solid #333;
+  padding: 8px;
+  text-align: left;
+}
+
+.menu {
+  .menuButtons {
+    display: flex;
+    gap: 10px;
+  }
+  display: flex;
+  justify-content: space-between;
+}
