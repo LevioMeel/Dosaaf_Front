@@ -3,73 +3,39 @@ import Select from "react-select";
 import { useState, useEffect } from "react";
 import { ListGroup } from "react-bootstrap";
 import { toastMes } from "@/src/lib/toastMes";
-
-// Пример использования
-const people = [
-  { name: "Иван", phone: "123" },
-  { name: "Мария", phone: "456" },
-  { name: "Пётр", phone: "789" },
-];
+import { GroupService } from "@/src/api/services/group.service";
+import { CadetService } from "@/src/api/services/cadet.service";
 
 export function ModalCreateGroup({ modalShow, setModalShow, getGroups }) {
   const [cursants, setCursants] = useState([]);
   const [selected, setSelected] = useState([]);
   const [groupNumber, setGroupNumber] = useState(null);
 
-  const getStudents = async () => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getStudents`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      const data = await Result.json();
-      setCursants(data);
-      console.log("Ответ сервера:", data);
-    } catch (err) {
-      console.error("Ошибка при отправке:", err);
-    }
-  };
+  function getLooseCadets() {
+    CadetService.getLooseCadets()
+      .then(setCursants)
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
-  const createGroup = async () => {
-    try {
-      if (!groupNumber) {
-        toastMes("Укажите номер группы", "error");
-        return;
-      }
-      if (!selected || selected.length <= 0) {
-        toastMes("Не выбраны курсанты", "error");
-        return;
-      }
-
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/createGroup`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            groupNumber: groupNumber,
-            students: selected,
-          }),
-        }
-      );
-      const data = await Result.json();
-      toastMes("Группа  создана", "success");
-      setModalShow(false);
-      setGroupNumber(null);
-      setSelected([]);
-      setCursants([]);
-      getGroups();
-    } catch (err) {
-      console.error("Ошибка при отправке:", err);
-    }
-  };
+  function createGroup({ groupNumber, cadets }) {
+    GroupService.createGroup({ groupNumber, cadets })
+      .then(() => {
+        toastMes("Группа  создана", "success");
+        setModalShow(false);
+        setGroupNumber(null);
+        setSelected([]);
+        setCursants([]);
+        getGroups();
+      })
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
   useEffect(() => {
-    getStudents();
+    getLooseCadets();
   }, [modalShow]);
 
   const handleToggle = (person) => {
@@ -126,7 +92,10 @@ export function ModalCreateGroup({ modalShow, setModalShow, getGroups }) {
         <Button variant="secondary" onClick={closeModal}>
           Закрыть
         </Button>
-        <Button variant="primary" onClick={createGroup}>
+        <Button
+          variant="primary"
+          onClick={() => createGroup({ groupNumber, cadets: selected })}
+        >
           Создать
         </Button>
       </Modal.Footer>

@@ -24,3 +24,118 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* 1. Стилизация полей ввода внутри ячеек при редактировании */
+.tabulator-cell input,
+.tabulator-cell select,
+.tabulator-edit-select-list {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 4px 8px !important;
+  border: 1px solid #0d6efd !important; /* Синий акцент при редактировании */
+  border-radius: 4px;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+  background-color: #fff !important;
+  color: #212529 !important;
+}
+
+/* 2. Стилизация полей фильтрации (в шапке таблицы) */
+.tabulator-header .tabulator-col .tabulator-header-filter input {
+  box-sizing: border-box;
+  padding: 6px 10px !important;
+  border: 1px solid #ced4da !important; /* Стандартный серый бордер */
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+  font-size: 14px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Эффект фокуса для фильтров */
+.tabulator-header .tabulator-col .tabulator-header-filter input:focus {
+  border-color: #86b7fe !important;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* 3. Исправление общего вида таблицы, если стили Bootstrap не подтянулись */
+.tabulator {
+  border: 1px solid #dee2e6 !important;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Полоски (zebra-striping) для читаемости */
+.tabulator-row-odd {
+  background-color: #f8f9fa !important;
+}
+
+/* Убираем br, который лезет между служебными блоками Tabulator */
+.tabulator-header + br,
+.tabulator-frozen-rows-holder + br,
+.tabulator-header-contents + br {
+  display: none !important;
+}
+
+/* На всякий случай скрываем все br внутри самой структуры таблицы, 
+   которые не являются контентом ячеек */
+.tabulator br {
+  display: none !important;
+}
+
+/* Контейнер пагинации */
+.tabulator-footer .tabulator-paginator {
+  display: flex;
+  gap: 5px;
+  padding: 10px;
+  justify-content: flex-start;
+}
+
+/* Кнопки пагинации */
+.tabulator-page {
+  border: 1px solid #dee2e6 !important;
+  background: #fff !important;
+  color: #0d6efd !important;
+  padding: 5px 12px !important;
+  border-radius: 4px !important;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabulator-page.active {
+  background-color: #0d6efd !important;
+  color: white !important;
+  border-color: #0d6efd !important;
+}
+
+.tabulator-page:hover:not(.active) {
+  background-color: #e9ecef !important;
+}
+
+/* Скрываем тот самый лишний br, который может появиться и в футере */
+.tabulator-footer br {
+  display: none !important;
+}
+/* Обращаемся максимально специфично */
+.tabulator .tabulator-footer .tabulator-footer-contents {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding: 8px 15px !important;
+}
+
+/* Обнуляем стандартные флоаты Tabulator, которые мешают флексбоксу */
+.tabulator .tabulator-footer .tabulator-page-counter,
+.tabulator .tabulator-footer .tabulator-paginator {
+  float: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+/* Если br все еще лезет и раздувает высоту */
+.tabulator-footer-contents br {
+  display: none !important;
+}

@@ -3,8 +3,10 @@ import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import { useState } from "react";
 import { Title } from "@/app/_components/titles/Title";
 import { toastMes } from "@/src/lib/toastMes";
+import { Table } from "react-bootstrap";
+import { CadetService } from "@/src/api/services/cadet.service";
 
-export function ModalCreateCursant({ modalShow, setModalShow }) {
+export function ModalCreateCadet({ modalShow, setModalShow, getAllCadets }) {
   const [students, setStudents] = useState([]);
 
   const handleChange = (index, field, value) => {
@@ -23,29 +25,18 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
     setStudents(updated);
   };
 
-  const handleSubmit = () => {
-    console.log("students", students);
-
-    if (!students || students.length <= 0) {
-      toastMes("Курсанты не указаны", "error");
-      return;
-    }
-    const hasEmpty = students.some((st) => !st.name || !st.phone);
-    if (hasEmpty) {
-      toastMes("Не указаны данные всех курсантов", "error");
-      return;
-    }
-
-    fetch(`${process.env.NEXT_PUBLIC_FETCH_URL}/api/createStudent`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(students),
-    });
-    toastMes("Курсанты созданы", "success");
-    setModalShow(false);
-    setStudents([]);
-  };
+  function createCadet(students) {
+    CadetService.createCadet(students)
+      .then(() => {
+        toastMes("Курсанты созданы", "success");
+        setModalShow(false);
+        setStudents([]);
+        getAllCadets();
+      })
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
   return (
     <Modal
@@ -60,19 +51,19 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
       <Modal.Body>
         <div style={{ padding: "20px" }}>
           <Title margin={" 0 0 5px 0"} text="Курсанты:" />
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <Table striped bordered hover>
             <thead>
               <tr>
-                <th style={thStyle}>ФИО</th>
-                <th style={thStyle}>Телефон</th>
-                <th style={thStyle}></th>
+                <th>ФИО</th>
+                <th>Телефон</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {students &&
                 students.map((student, idx) => (
                   <tr key={idx}>
-                    <td style={tdStyle}>
+                    <td>
                       <input
                         type="text"
                         value={student.name}
@@ -83,7 +74,7 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
                         style={{ width: "100%" }}
                       />
                     </td>
-                    <td style={tdStyle}>
+                    <td>
                       <input
                         type="text"
                         value={student.phone}
@@ -94,7 +85,7 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
                         style={{ width: "100%" }}
                       />
                     </td>
-                    <td style={tdStyle}>
+                    <td>
                       <button onClick={() => removeStudent(idx)}>
                         Удалить
                       </button>
@@ -102,10 +93,13 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
                   </tr>
                 ))}
             </tbody>
-          </table>
+          </Table>
           <div style={{ marginTop: "10px" }}>
             <button onClick={addStudent}>Добавить студента</button>
-            <button onClick={handleSubmit} style={{ marginLeft: "10px" }}>
+            <button
+              onClick={() => createCadet(students)}
+              style={{ marginLeft: "10px" }}
+            >
               Сохранить
             </button>
           </div>
@@ -119,16 +113,3 @@ export function ModalCreateCursant({ modalShow, setModalShow }) {
     </Modal>
   );
 }
-
-const thStyle = {
-  border: "1px solid #333",
-  padding: "8px",
-  textAlign: "left",
-  background: "#f0f0f0",
-};
-
-const tdStyle = {
-  border: "1px solid #333",
-  padding: "8px",
-  textAlign: "left",
-};

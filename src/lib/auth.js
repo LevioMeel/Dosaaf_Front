@@ -14,14 +14,14 @@ export const auth = betterAuth({
         enabled: true,
     },
     plugins: [nextCookies()],
-    advanced: {
-        crossSubDomainCookies: {
-            enabled: true,
-            domain: "drdgen.ru"
-        }
-    },
-    trustedOrigins: [
-        'https://api.drdgen.ru'
-    ]
+    // advanced: {
+    //     crossSubDomainCookies: {
+    //         enabled: true,
+    //         domain: "drdgen.ru"
+    //     }
+    // },
+    // trustedOrigins: [
+    //     'https://api.drdgen.ru'
+    // ]
 })
 

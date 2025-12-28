@@ -6,98 +6,72 @@ import { toastMes } from "@/src/lib/toastMes";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import styles from "./generateGraphUchetDrive.module.scss";
 import Link from "next/link";
+import { Table } from "react-bootstrap";
+import { GenerateService } from "@/src/api/services/generate.service";
+import { GroupService } from "@/src/api/services/group.service";
+import { downloadDocument } from "../lib/downloadDocument";
 
 export default function GenerateWaybill({ params }) {
   const [groups, setGroups] = useState([]);
-  const [selectedGruup, setSelectedGruup] = useState(null);
-  const [groupStudents, setGroupStudents] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   // Доп. данные для документа
   const [day, setDay] = useState(null);
   const [month, setMonth] = useState(null);
   const [year, setYear] = useState(null);
-  const [driver, serDriver] = useState(null);
+  const [driver, setDriver] = useState(null);
   const [teacher, setTeacher] = useState(null);
   const [driveCategory, setDriveCategory] = useState(null);
 
-  const getGroups = async () => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroups`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      const data = await Result.json();
-      setGroups(data);
-      console.log("Ответ сервера:", data);
-    } catch (err) {
-      console.error("Ошибка при отправке:", err);
-    }
-  };
-
   const onSelect = (row, e) => {
     if (e.target.checked) {
-      setSelectedGruup(row);
+      setSelectedGroup(row);
     } else {
-      setSelectedGruup(null);
+      setSelectedGroup(null);
     }
   };
 
-  const getGroupStudents = async (groupID) => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroupStudents/?id=${groupID}`,
-        { credentials: "include" }
-      );
-      const data = await Result.json();
-      setGroupStudents(data);
-      return data;
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  async function getGroups() {
+    GroupService.getGroups()
+      .then(setGroups)
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
+
+  async function getGroupStudents(id) {
+    return GroupService.getGroupStudents(id)
+      .then((data) => {
+        return data;
+      })
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
   const generateDoc = async () => {
     try {
-      const students = await getGroupStudents(selectedGruup.groupStud_id);
-      console.log("students: ", students);
+      const cadets = await getGroupStudents(selectedGroup.groupStud_id);
 
-      const studentsForDoc = students.map((el, index) => {
-        return {
-          id: index,
-          fioCursant: el.student_name,
-          fioMaster: "Хайдаров Денис",
-        };
-      });
-
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/generate/graphUchetDrive`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            meta: {
-              day,
-              month,
-              year,
-              group: selectedGruup.groupStud_number,
-              driver,
-              driveCategory,
-              teacher,
-            },
-            students: studentsForDoc,
-          }),
-        }
-      );
-      const blob = await Result.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "graphUchetDriveGenerated.docx";
-      a.click();
-      toastMes("Документ сформирован", "success");
+      GenerateService.generateGraphUchetDrive({
+        cadets,
+        meta: {
+          day,
+          month,
+          year,
+          group: selectedGroup.groupStud_number,
+          driver,
+          driveCategory,
+          teacher,
+        },
+      })
+        .then((blob) => {
+          downloadDocument(blob);
+          toastMes("Документ сформирован", "success");
+        })
+        .catch((err) => {
+          toastMes(err.message, "error");
+        });
     } catch (err) {
       console.error("Ошибка при отправке:", err);
     }
@@ -149,7 +123,7 @@ export default function GenerateWaybill({ params }) {
               <Form.Label>Водитель</Form.Label>
               <Form.Control
                 type="text"
-                onChange={(e) => serDriver(e.target.value)}
+                onChange={(e) => setDriver(e.target.value)}
               />
             </Form.Group>
           </Col>
@@ -175,7 +149,7 @@ export default function GenerateWaybill({ params }) {
       </div>
       <div className={styles.tableWrapper}>
         <h2 className="text-xl font-semibold mb-2">Группы:</h2>
-        <table className="w-full border-collapse">
+        <Table striped bordered hover>
           <thead>
             <tr>
               <th className="p-2 text-left">Выбрать</th>
@@ -193,9 +167,9 @@ export default function GenerateWaybill({ params }) {
                 <td className="p-2">
                   <input
                     type="radio"
-                    name="selectedGruup" // общая группа для всех radio
+                    name="selectedGroup" // общая группа для всех radio
                     onChange={(e) => onSelect(row, e)}
-                    checked={selectedGruup?.groupStud_id === row.groupStud_id}
+                    checked={selectedGroup?.groupStud_id === row.groupStud_id}
                   />
                 </td>
                 <td className="p-2">{row.groupStud_number}</td>
@@ -204,12 +178,12 @@ export default function GenerateWaybill({ params }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </div>
       <Button
         variant="dark"
         onClick={generateDoc}
-        disabled={selectedGruup ? false : true}
+        disabled={selectedGroup ? false : true}
       >
         Сформировать путевые листы
       </Button>

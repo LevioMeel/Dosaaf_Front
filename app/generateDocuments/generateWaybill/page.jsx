@@ -6,90 +6,66 @@ import { toastMes } from "@/src/lib/toastMes";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import styles from "./generateWaybill.module.scss";
 import Link from "next/link";
+import { Table } from "react-bootstrap";
+import { GroupService } from "@/src/api/services/group.service";
+import { GenerateService } from "@/src/api/services/generate.service";
+import { downloadDocument } from "../lib/downloadDocument";
 
 export default function GenerateWaybill({ params }) {
   const [groups, setGroups] = useState([]);
-  const [selectedGruup, setSelectedGruup] = useState(null);
-  const [groupStudents, setGroupStudents] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   // Доп. данные для документа
   const [numberDocument, setNumberDocument] = useState(null);
 
-  const getGroups = async () => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroups`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      const data = await Result.json();
-      setGroups(data);
-      console.log("Ответ сервера:", data);
-    } catch (err) {
-      console.error("Ошибка при отправке:", err);
-    }
-  };
-
   const onSelect = (row, e) => {
     if (e.target.checked) {
-      setSelectedGruup(row);
+      setSelectedGroup(row);
     } else {
-      setSelectedGruup(null);
+      setSelectedGroup(null);
     }
   };
 
-  const getGroupStudents = async (groupID) => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroupStudents/?id=${groupID}`,
-        { credentials: "include" }
-      );
-      const data = await Result.json();
-      setGroupStudents(data);
-      return data;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const generateDoc = async () => {
-    try {
-      const students = await getGroupStudents(selectedGruup.groupStud_id);
-      console.log("students: ", students);
-
-      const kursantsForDoc = students.map((el, index) => {
-        return {
-          fioCursant: el.student_name,
-        };
+  async function getGroups() {
+    GroupService.getGroups()
+      .then(setGroups)
+      .catch((err) => {
+        toastMes(err.message, "error");
       });
+  }
 
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/generate/waybills`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            meta: {
-              numberDocument: numberDocument,
-              group: selectedGruup.groupStud_number,
-            },
-            kursants: kursantsForDoc,
-          }),
-        }
-      );
-      const blob = await Result.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "graphUchetDriveGenerated.docx";
-      a.click();
-      toastMes("Документ сформирован", "success");
+  async function getGroupStudents(id) {
+    return GroupService.getGroupStudents(id)
+      .then((data) => {
+        return data;
+      })
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
+
+  async function generateDocWaybill() {
+    try {
+      const cadets = await getGroupStudents(selectedGroup.groupStud_id);
+
+      GenerateService.generateWaybill({
+        cadets,
+        meta: {
+          numberDocument: numberDocument,
+          group: selectedGroup.groupStud_number,
+        },
+      })
+        .then((blob) => {
+          downloadDocument(blob);
+          toastMes("Документ сформирован", "success");
+        })
+        .catch((err) => {
+          toastMes(err.message, "error");
+        });
     } catch (err) {
-      console.error("Ошибка при отправке:", err);
+      console.error("Ошибка при формировании документа:", err);
     }
-  };
+  }
 
   useEffect(() => {
     getGroups();
@@ -118,7 +94,7 @@ export default function GenerateWaybill({ params }) {
       </div>
       <div className={styles.tableWrapper}>
         <h2 className="text-xl font-semibold mb-2">Группы:</h2>
-        <table className="w-full border-collapse">
+        <Table striped bordered hover>
           <thead>
             <tr>
               <th className="p-2 text-left">Выбрать</th>
@@ -136,9 +112,9 @@ export default function GenerateWaybill({ params }) {
                 <td className="p-2">
                   <input
                     type="radio"
-                    name="selectedGruup" // общая группа для всех radio
+                    name="selectedGroup" // общая группа для всех radio
                     onChange={(e) => onSelect(row, e)}
-                    checked={selectedGruup?.groupStud_id === row.groupStud_id}
+                    checked={selectedGroup?.groupStud_id === row.groupStud_id}
                   />
                 </td>
                 <td className="p-2">{row.groupStud_number}</td>
@@ -147,12 +123,12 @@ export default function GenerateWaybill({ params }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </div>
       <Button
         variant="dark"
-        onClick={generateDoc}
-        disabled={selectedGruup ? false : true}
+        onClick={generateDocWaybill}
+        disabled={selectedGroup ? false : true}
       >
         Сформировать путевые листы
       </Button>

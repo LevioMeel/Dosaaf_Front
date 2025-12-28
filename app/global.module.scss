@@ -1,0 +1,20 @@
+.menu {
+  .menuButtons {
+    display: flex;
+    gap: 10px;
+  }
+  display: flex;
+  justify-content: space-between;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.tabulatormargin {
+  margin-top: 10px;
+}

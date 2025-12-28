@@ -1,9 +1,7 @@
 "use client";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { GroupCreate } from "@/app/groups/_components/GroupCreate";
-import { CadetCreate } from "@/app/cadets/_components/CadetCreate";
 import { Title } from "@/app/_components/titles/Title";
-import styles from "./groups.module.scss";
+import styles from "./cadet.module.scss";
 import stylesG from "@/app/global.module.scss";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,19 +9,18 @@ import { toastMes } from "@/src/lib/toastMes";
 import Link from "next/link";
 import { Button } from "react-bootstrap";
 import { Table } from "react-bootstrap";
-import { GroupService } from "@/src/api/services/group.service";
-import { format } from "date-fns";
+import { CadetService } from "@/src/api/services/cadet.service";
+import { CadetCreate } from "./_components/CadetCreate";
 import { ReactTabulator } from "react-tabulator";
 import "react-tabulator/css/bootstrap/tabulator_bootstrap.min.css";
 
-export default function Groups() {
-  const [groups, setGroups] = useState([]);
+export default function Cadets() {
+  const [allCadets, setAllCadets] = useState([]);
   const [isMounted, setIsMounted] = useState(false); // Фикс гидратации
-  const router = useRouter();
 
-  function getGroups() {
-    GroupService.getGroups()
-      .then(setGroups)
+  function getAllCadets() {
+    CadetService.getAllCadets()
+      .then(setAllCadets)
       .catch((err) => {
         toastMes(err.message, "error");
       });
@@ -31,28 +28,19 @@ export default function Groups() {
 
   useEffect(() => {
     setIsMounted(true);
-    getGroups();
+    getAllCadets();
   }, []);
 
   const columns = [
     {
-      title: "Номер группы",
-      field: "groupStud_number",
+      title: "ФИО",
+      field: "student_name",
       headerFilter: "input",
     },
     {
-      title: "Численность",
-      field: "student_count",
+      title: "Телефон",
+      field: "student_phone",
       headerFilter: "input",
-    },
-    {
-      title: "Дата создания",
-      field: "groupStud_dateCreate",
-      headerFilter: "input",
-      formatter: (cell) => {
-        const value = cell.getValue();
-        return format(value, "yyyy-MM-dd HH:mm");
-      },
     },
   ];
 
@@ -65,8 +53,7 @@ export default function Groups() {
     <>
       <div className={stylesG.menu}>
         <div className={stylesG.menuButtons}>
-          <GroupCreate getGroups={getGroups} />
-          <CadetCreate />
+          <CadetCreate getAllCadets={getAllCadets} />
         </div>
         <Link href="/">
           <Button variant="dark">Назад</Button>
@@ -74,25 +61,22 @@ export default function Groups() {
       </div>
       <div className={stylesG.tabulatormargin}>
         {/* <div style={{ padding: "20px" }}>
-          <Title margin={" 0 0 5px 0"} text="Группы:" />
+          <Title margin={" 0 0 5px 0"} text="Курсанты:" />
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className={styles.thStyle}>Номер группы</th>
-                <th className={styles.thStyle}>Численность</th>
-                <th className={styles.thStyle}>Дата создания</th>
+                <th className={styles.thStyle}>ФИО</th>
+                <th className={styles.thStyle}>Телефон</th>
+                <th className={styles.thStyle}>Группа</th>
               </tr>
             </thead>
             <tbody>
-              {groups.map((row, idx) => (
-                <tr
-                  key={idx}
-                  onClick={() => router.push(`/groups/${row.groupStud_id}`)}
-                >
-                  <td className={styles.tdStyle}>{row.groupStud_number}</td>
-                  <td className={styles.tdStyle}>{row.student_count}</td>
+              {allCadets.map((row, idx) => (
+                <tr key={idx}>
+                  <td className={styles.tdStyle}>{row.student_name}</td>
+                  <td className={styles.tdStyle}>{row.student_phone}</td>
                   <td className={styles.tdStyle}>
-                    {format(row.groupStud_dateCreate, "yyyy-MM-dd HH:mm")}
+                    {row.groupStud_number ? row.groupStud_number : ""}
                   </td>
                 </tr>
               ))}
@@ -101,13 +85,7 @@ export default function Groups() {
         </div> */}
         <ReactTabulator
           columns={columns}
-          data={groups}
-          events={{
-            rowClick: (e, row) => {
-              const data = row.getData();
-              router.push(`/groups/${data.groupStud_id}`);
-            },
-          }}
+          data={allCadets}
           options={{
             layout: "fitColumns",
             resizableRows: false, // Отключаем изменение высоты строк

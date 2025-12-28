@@ -7,8 +7,8 @@ import styles from "./app.module.scss";
 import { useSession } from "./providers/SessionProvider";
 
 export default function Home() {
-  console.log("ГЛАВНАЯ СТРАНИЦА");
   const session = useSession();
+  console.log("ГЛАВНАЯ СТРАНИЦА", session);
 
   if (session) {
     return (
@@ -22,6 +22,11 @@ export default function Home() {
         <Button variant="dark">
           <Link href="/groups" className={styles.resetLinkStyles}>
             Группы
+          </Link>
+        </Button>
+        <Button variant="dark">
+          <Link href="/cadets" className={styles.resetLinkStyles}>
+            Курсанты
           </Link>
         </Button>
         <Button variant="dark">

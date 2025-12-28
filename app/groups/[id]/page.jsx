@@ -2,46 +2,49 @@
 import { use } from "react";
 import { Title } from "@/app/_components/titles/Title";
 import styles from "./group.module.scss";
+import stylesG from "@/app/global.module.scss";
 import { useState, useEffect } from "react";
+import { toastMes } from "@/src/lib/toastMes";
+import { GroupService } from "@/src/api/services/group.service";
+import Link from "next/link";
+import { Button } from "react-bootstrap";
+import { format } from "date-fns";
 
 export default function Group({ params }) {
   const [groupData, setGroupData] = useState({});
   const [groupStudents, setGroupStudents] = useState([]);
   const group = use(params);
 
-  const getGroups = async (group) => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroup/?id=${group.id}`,
-        { credentials: "include" }
-      );
-      const data = await Result.json();
-      setGroupData(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  function getGroup(id) {
+    GroupService.getGroup(id)
+      .then((data) => setGroupData(data[0]))
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
-  const getGroupStudents = async (group) => {
-    try {
-      const Result = await fetch(
-        `${process.env.NEXT_PUBLIC_FETCH_URL}/api/getGroupStudents/?id=${group.id}`,
-        { credentials: "include" }
-      );
-      const data = await Result.json();
-      setGroupStudents(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  function getGroupStudents(id) {
+    GroupService.getGroupStudents(id)
+      .then(setGroupStudents)
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
 
   useEffect(() => {
-    getGroups(group);
-    getGroupStudents(group);
+    getGroup(group.id);
+    getGroupStudents(group.id);
   }, []);
 
   return (
     <div className={styles.container}>
+      <div className={stylesG.menu}>
+        <div></div>
+        <Link href="/groups">
+          <Button variant="dark">Назад</Button>
+        </Link>
+      </div>
+
       <Title
         margin="0 0 10px 0"
         text={`Группа № ${groupData.groupStud_number}`}
@@ -54,7 +57,9 @@ export default function Group({ params }) {
         </div>
         <div className={styles.infoItem}>
           <span className={styles.label}>Дата создания:</span>
-          <span className={styles.value}>{groupData.groupStud_dateCreate}</span>
+          <span className={styles.value}>
+            {format(groupData.groupStud_dateCreate, "yyyy-MM-dd HH:mm")}
+          </span>
         </div>
       </div>
 
