@@ -36,4 +36,27 @@ export const GroupService = {
         const data = await apiRequest({ endpoint: `/api/groups/createGroup`, body: { groupNumber, cadets }, options: { method: "POST" } })
         return data
     },
+    /**
+    * Открепить курсанта от группы 
+    */
+    unFixCadet: async ({ cadet, group }) => {
+        const data = await apiRequest({ endpoint: '/api/groups/unFixCadet', body: { cadet, group }, options: { method: "POST" } })
+        return data
+    },
+    /**
+    * Закрепить курсантов за группой 
+    */
+    fixCadetToGroup: async ({ groupData, cadets }) => {
+        const cadetsIDs = cadets.map(el => el.student_id)
+
+        const data = await apiRequest({ endpoint: '/api/groups/fixCadetToGroup', body: { groupID: groupData.groupStud_id, cadets: cadetsIDs }, options: { method: "POST" } })
+        return data
+    },
+    /**
+    * Удалить группу
+    */
+    deleteGroup: async (group) => {
+        const data = await apiRequest({ endpoint: `/api/groups/deleteGroup`, body: { groupID: group.groupStud_id }, options: { method: "POST" } })
+        return data
+    },
 };

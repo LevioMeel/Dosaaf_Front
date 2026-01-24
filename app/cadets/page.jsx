@@ -13,10 +13,13 @@ import { CadetService } from "@/src/api/services/cadet.service";
 import { CadetCreate } from "./_components/CadetCreate";
 import { ReactTabulator } from "react-tabulator";
 import "react-tabulator/css/bootstrap/tabulator_bootstrap.min.css";
+import { useRef } from "react";
 
 export default function Cadets() {
   const [allCadets, setAllCadets] = useState([]);
   const [isMounted, setIsMounted] = useState(false); // Фикс гидратации
+
+  const tableRef = useRef(null);
 
   function getAllCadets() {
     CadetService.getAllCadets()
@@ -42,9 +45,41 @@ export default function Cadets() {
       field: "student_phone",
       headerFilter: "input",
     },
+    {
+      title: "Группа",
+      field: "groupStud_number",
+      headerFilter: "input",
+    },
+    {
+      title: "Удалить",
+      field: "",
+      width: 100,
+      headerSort: false,
+      formatter: (cell) => {
+        return `<button class="btn btn-danger btn-sm" style="width: 100%;">Удалить</button>`;
+      },
+      cellClick: (e, cell) => {
+        const data = cell.getRow().getData();
+        if (
+          confirm(
+            `Вы уверены, что хотите удалить: ${
+              data.student_name || data.groupStud_number
+            }?`
+          )
+        ) {
+          CadetService.deleteCadet(data)
+            .then(() => {
+              toastMes(`Курсант: ${data.student_name} - удален`, "success");
+              getAllCadets();
+            })
+            .catch((err) => {
+              toastMes(err.message, "error");
+            });
+        }
+      },
+    },
   ];
 
-  // Предотвращаем рендер на сервере
   if (!isMounted) {
     return <div className={stylesG.tabulatormargin}>Загрузка данных...</div>;
   }
@@ -60,30 +95,8 @@ export default function Cadets() {
         </Link>
       </div>
       <div className={stylesG.tabulatormargin}>
-        {/* <div style={{ padding: "20px" }}>
-          <Title margin={" 0 0 5px 0"} text="Курсанты:" />
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th className={styles.thStyle}>ФИО</th>
-                <th className={styles.thStyle}>Телефон</th>
-                <th className={styles.thStyle}>Группа</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allCadets.map((row, idx) => (
-                <tr key={idx}>
-                  <td className={styles.tdStyle}>{row.student_name}</td>
-                  <td className={styles.tdStyle}>{row.student_phone}</td>
-                  <td className={styles.tdStyle}>
-                    {row.groupStud_number ? row.groupStud_number : ""}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div> */}
         <ReactTabulator
+          onRef={(ref) => (tableRef.current = ref.current)}
           columns={columns}
           data={allCadets}
           options={{
@@ -91,7 +104,7 @@ export default function Cadets() {
             resizableRows: false, // Отключаем изменение высоты строк
             pagination: "local", // Включить локальную пагинацию
             paginationSize: 10, // Количество записей на одной странице
-            paginationSizeSelector: [5, 10, 20, 50], // Выбор количества записей пользователем
+            paginationSizeSelector: [10, 20, 50, 100], // Выбор количества записей пользователем
             paginationCounter: "rows", // Показать счетчик строк
             locale: "ru-ru", // Устанавливаем активный язык
             langs: {

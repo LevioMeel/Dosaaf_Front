@@ -21,7 +21,7 @@ export const auth = betterAuth({
     //     }
     // },
     // trustedOrigins: [
-    //     'https://api.drdgen.ru'
+    //     'https://api-drdgen.ru'
     // ]
 })
 

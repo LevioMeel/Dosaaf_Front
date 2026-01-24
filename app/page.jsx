@@ -19,34 +19,30 @@ export default function Home() {
             Выйти
           </Button>
         </form>
-        <Button variant="dark">
-          <Link href="/groups" className={styles.resetLinkStyles}>
-            Группы
-          </Link>
-        </Button>
-        <Button variant="dark">
-          <Link href="/cadets" className={styles.resetLinkStyles}>
-            Курсанты
-          </Link>
-        </Button>
-        <Button variant="dark">
-          <Link href="/generateDocuments" className={styles.resetLinkStyles}>
-            Сформировать документы
-          </Link>
-        </Button>
+
+        <Link href="/groups" className={styles.resetLinkStyles}>
+          <Button variant="dark">Группы</Button>
+        </Link>
+
+        <Link href="/cadets" className={styles.resetLinkStyles}>
+          <Button variant="dark">Курсанты</Button>
+        </Link>
+
+        <Link href="/generateDocuments" className={styles.resetLinkStyles}>
+          <Button variant="dark">Сформировать документы</Button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div>
-      <Button variant="dark">
-        <Link href="/signup">Зарегистрироваться</Link>
-      </Button>
-
-      <Button variant="dark">
-        <Link href="/signin">Войти</Link>
-      </Button>
+    <div className={styles.authButtons}>
+      <Link href="/signup">
+        <Button variant="dark">Зарегистрироваться</Button>
+      </Link>
+      <Link href="/signin">
+        <Button variant="dark">Войти</Button>
+      </Link>
     </div>
   );
 }

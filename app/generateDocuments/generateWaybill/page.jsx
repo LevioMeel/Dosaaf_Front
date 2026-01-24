@@ -3,22 +3,25 @@ import { useState, useEffect } from "react";
 import { Title } from "@/app/_components/titles/Title";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { toastMes } from "@/src/lib/toastMes";
-import { Modal, Button, Row, Col, Form } from "react-bootstrap";
+import { Button, Row, Col, Form } from "react-bootstrap";
 import styles from "./generateWaybill.module.scss";
 import Link from "next/link";
 import { Table } from "react-bootstrap";
 import { GroupService } from "@/src/api/services/group.service";
+import { CarService } from "@/src/api/services/car.service";
 import { GenerateService } from "@/src/api/services/generate.service";
 import { downloadDocument } from "../lib/downloadDocument";
 
-export default function GenerateWaybill({ params }) {
+export default function GenerateWaybill() {
   const [groups, setGroups] = useState([]);
+  const [cars, setCars] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedCar, setSelectedCar] = useState(null);
 
   // Доп. данные для документа
   const [numberDocument, setNumberDocument] = useState(null);
 
-  const onSelect = (row, e) => {
+  const onSelectGroup = (row, e) => {
     if (e.target.checked) {
       setSelectedGroup(row);
     } else {
@@ -26,9 +29,28 @@ export default function GenerateWaybill({ params }) {
     }
   };
 
+  const onSelectCar = (row, e) => {
+    console.log("e.target.checked", e.target.checked);
+    console.log("e", e);
+
+    // if (e.target.checked) {
+    //   setSelectedCar(row);
+    // } else {
+    //   setSelectedCar(null);
+    // }
+  };
+
   async function getGroups() {
     GroupService.getGroups()
       .then(setGroups)
+      .catch((err) => {
+        toastMes(err.message, "error");
+      });
+  }
+
+  async function getCars() {
+    CarService.getCars()
+      .then(setCars)
       .catch((err) => {
         toastMes(err.message, "error");
       });
@@ -69,7 +91,10 @@ export default function GenerateWaybill({ params }) {
 
   useEffect(() => {
     getGroups();
+    getCars();
   }, []);
+
+  console.log("cars", cars);
 
   return (
     <div>
@@ -113,7 +138,7 @@ export default function GenerateWaybill({ params }) {
                   <input
                     type="radio"
                     name="selectedGroup" // общая группа для всех radio
-                    onChange={(e) => onSelect(row, e)}
+                    onChange={(e) => onSelectGroup(row, e)}
                     checked={selectedGroup?.groupStud_id === row.groupStud_id}
                   />
                 </td>
@@ -124,11 +149,39 @@ export default function GenerateWaybill({ params }) {
             ))}
           </tbody>
         </Table>
+
+        <h2 className="text-xl font-semibold mb-2">Машина:</h2>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th className="p-2 text-left">Выбрать</th>
+              <th className="p-2 text-left">Номер машины</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cars.map((row) => (
+              <tr
+                key={row.Cars_id}
+                className="cursor-pointer hover:bg-gray-100"
+              >
+                <td className="p-2">
+                  <input
+                    type="radio"
+                    name="selectedCar" // общая группа для всех radio
+                    onChange={(e) => onSelectCar(row, e)}
+                    checked={selectedCar?.Cars_id === row.Cars_id}
+                  />
+                </td>
+                <td className="p-2">{row.Cars_number}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
       <Button
         variant="dark"
         onClick={generateDocWaybill}
-        disabled={selectedGroup ? false : true}
+        disabled={selectedGroup && selectedCar ? false : true}
       >
         Сформировать путевые листы
       </Button>

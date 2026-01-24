@@ -2,9 +2,10 @@ import apiRequest from '../api-client';
 
 export const CadetService = {
     /**
-     * Создать курсанта
-     */
+    * Создать курсанта
+    */
     createCadet: async (students) => {
+
         if (!students || students.length <= 0) {
             throw new Error("Курсанты не указаны");
         }
@@ -17,8 +18,8 @@ export const CadetService = {
         return data
     },
     /**
-     * Получить не закрепленных за группами курсантов 
-     */
+    * Получить не закрепленных за группами курсантов 
+    */
     getLooseCadets: async () => {
         const data = await apiRequest({ endpoint: '/api/cadets/getLooseCadets', options: { method: "GET" } })
         return data
@@ -28,6 +29,13 @@ export const CadetService = {
     */
     getAllCadets: async () => {
         const data = await apiRequest({ endpoint: '/api/cadets/getAllCadets', options: { method: "GET" } })
+        return data
+    },
+    /**
+    * Удалить курсанта 
+    */
+    deleteCadet: async (cadet) => {
+        const data = await apiRequest({ endpoint: '/api/cadets/deleteCadet', body: cadet, options: { method: "POST" } })
         return data
     },
 };

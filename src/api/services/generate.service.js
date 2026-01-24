@@ -4,14 +4,14 @@ export const GenerateService = {
     /**
      * Сгенерировать - Путевой лист 
      */
-    generateWaybill: async ({ cadets, meta }) => {
+    generateWaybill: async ({ cadets, meta, carID }) => {
         const cadetsForDoc = cadets.map((el) => {
             return {
                 fioCursant: el.student_name,
             };
         });
 
-        const data = await apiRequest({ endpoint: '/api/generate/waybills', body: { meta, cadets: cadetsForDoc }, options: { method: "POST" }, type: 'blob' })
+        const data = await apiRequest({ endpoint: '/api/generate/waybills', body: { meta, carID, cadets: cadetsForDoc }, options: { method: "POST" }, type: 'blob' })
         return data
     },
     /**

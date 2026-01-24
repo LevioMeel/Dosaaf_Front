@@ -11,7 +11,7 @@ import { GenerateService } from "@/src/api/services/generate.service";
 import { GroupService } from "@/src/api/services/group.service";
 import { downloadDocument } from "../lib/downloadDocument";
 
-export default function GenerateWaybill({ params }) {
+export default function generateGraphUchetDrive() {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
 
@@ -185,7 +185,7 @@ export default function GenerateWaybill({ params }) {
         onClick={generateDoc}
         disabled={selectedGroup ? false : true}
       >
-        Сформировать путевые листы
+        Сформировать карточку учета вождения
       </Button>
     </div>
   );

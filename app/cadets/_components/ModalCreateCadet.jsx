@@ -31,7 +31,9 @@ export function ModalCreateCadet({ modalShow, setModalShow, getAllCadets }) {
         toastMes("Курсанты созданы", "success");
         setModalShow(false);
         setStudents([]);
-        getAllCadets();
+        if (getAllCadets) {
+          getAllCadets();
+        }
       })
       .catch((err) => {
         toastMes(err.message, "error");

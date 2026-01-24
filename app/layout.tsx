@@ -34,8 +34,6 @@ export default async function RootLayout({
     headers: await headers(),
   });
 
-  // console.log("session22222222222", session?.user);
-
   return (
     <html lang="en">
       <body

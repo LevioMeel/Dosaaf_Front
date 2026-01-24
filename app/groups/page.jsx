@@ -2,15 +2,12 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { GroupCreate } from "@/app/groups/_components/GroupCreate";
 import { CadetCreate } from "@/app/cadets/_components/CadetCreate";
-import { Title } from "@/app/_components/titles/Title";
-import styles from "./groups.module.scss";
 import stylesG from "@/app/global.module.scss";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toastMes } from "@/src/lib/toastMes";
 import Link from "next/link";
 import { Button } from "react-bootstrap";
-import { Table } from "react-bootstrap";
 import { GroupService } from "@/src/api/services/group.service";
 import { format } from "date-fns";
 import { ReactTabulator } from "react-tabulator";
@@ -39,7 +36,12 @@ export default function Groups() {
       title: "Номер группы",
       field: "groupStud_number",
       headerFilter: "input",
+      cellClick: (e, cell) => {
+        const data = cell.getRow().getData();
+        router.push(`/groups/${data.groupStud_id}`);
+      },
     },
+
     {
       title: "Численность",
       field: "student_count",
@@ -51,12 +53,38 @@ export default function Groups() {
       headerFilter: "input",
       formatter: (cell) => {
         const value = cell.getValue();
-        return format(value, "yyyy-MM-dd HH:mm");
+
+        return value ? format(value, "yyyy-MM-dd HH:mm") : "";
+      },
+    },
+    {
+      title: "Удалить",
+      field: "",
+      width: 100,
+      headerSort: false,
+      formatter: (cell) => {
+        return `<button class="btn btn-danger btn-sm" style="width: 100%;">Удалить</button>`;
+      },
+      cellClick: (e, cell) => {
+        const data = cell.getRow().getData();
+        if (
+          confirm(
+            `Вы уверены, что хотите удалить группу: ${data.groupStud_number}?`,
+          )
+        ) {
+          GroupService.deleteGroup(data)
+            .then(() => {
+              toastMes(`Группа: ${data.groupStud_number} - удалена`, "success");
+              getGroups();
+            })
+            .catch((err) => {
+              toastMes(err.message, "error");
+            });
+        }
       },
     },
   ];
 
-  // Предотвращаем рендер на сервере
   if (!isMounted) {
     return <div className={stylesG.tabulatormargin}>Загрузка данных...</div>;
   }
@@ -73,47 +101,15 @@ export default function Groups() {
         </Link>
       </div>
       <div className={stylesG.tabulatormargin}>
-        {/* <div style={{ padding: "20px" }}>
-          <Title margin={" 0 0 5px 0"} text="Группы:" />
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th className={styles.thStyle}>Номер группы</th>
-                <th className={styles.thStyle}>Численность</th>
-                <th className={styles.thStyle}>Дата создания</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((row, idx) => (
-                <tr
-                  key={idx}
-                  onClick={() => router.push(`/groups/${row.groupStud_id}`)}
-                >
-                  <td className={styles.tdStyle}>{row.groupStud_number}</td>
-                  <td className={styles.tdStyle}>{row.student_count}</td>
-                  <td className={styles.tdStyle}>
-                    {format(row.groupStud_dateCreate, "yyyy-MM-dd HH:mm")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div> */}
         <ReactTabulator
           columns={columns}
           data={groups}
-          events={{
-            rowClick: (e, row) => {
-              const data = row.getData();
-              router.push(`/groups/${data.groupStud_id}`);
-            },
-          }}
           options={{
             layout: "fitColumns",
             resizableRows: false, // Отключаем изменение высоты строк
             pagination: "local", // Включить локальную пагинацию
             paginationSize: 10, // Количество записей на одной странице
-            paginationSizeSelector: [5, 10, 20, 50], // Выбор количества записей пользователем
+            paginationSizeSelector: [10, 20, 50, 100], // Выбор количества записей пользователем
             paginationCounter: "rows", // Показать счетчик строк
             locale: "ru-ru", // Устанавливаем активный язык
             langs: {
